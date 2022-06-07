@@ -2,6 +2,22 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 
+const getLocation = (move) => {
+  const locationMap = {
+    0: 'row: 1, col: 1',
+    1: 'row: 1, col: 2',
+    2: 'row: 1, col: 3',
+    3: 'row: 2, col: 1',
+    4: 'row: 2, col: 2',
+    5: 'row: 2, col: 3',
+    6: 'row: 3, col: 1',
+    7: 'row: 3, col: 2',
+    8: 'row: 3, col: 3',
+  };
+
+  return locationMap[move];
+};
+
 function Square(props) {
     return (
         <button className="square" onClick={props.onClick}>
@@ -11,6 +27,21 @@ function Square(props) {
 }
   
   class Board extends React.Component {
+    createBoard() {
+      const board = [];
+      let squareCounter = 0;
+
+      for(let i = 0; i < 3; ++i) {
+        const columns = []
+        for(let j = 0; j < 3; ++j) {
+          columns.push(this.renderSquare(squareCounter++));
+        }
+        board.push(<div key={i} className="board-row">{columns}</div>);
+      }
+
+    return board;
+    }
+
     renderSquare(i) {
       return (
         <Square 
@@ -21,25 +52,7 @@ function Square(props) {
     }
   
     render() {
-      return (
-        <div>
-          <div className="board-row">
-            {this.renderSquare(0)}
-            {this.renderSquare(1)}
-            {this.renderSquare(2)}
-          </div>
-          <div className="board-row">
-            {this.renderSquare(3)}
-            {this.renderSquare(4)}
-            {this.renderSquare(5)}
-          </div>
-          <div className="board-row">
-            {this.renderSquare(6)}
-            {this.renderSquare(7)}
-            {this.renderSquare(8)}
-          </div>
-        </div>
-      );
+      return <div>{this.createBoard()}</div>;
     }
   }
   
@@ -50,13 +63,13 @@ function Square(props) {
         history: [{
           squares:Array(9).fill(null),
         }],
-        stepNumber: 0,
+        currentStepNumber: 0,
         xIsNext: true,
       };
     }
 
     handleClick(i) {
-      const history = this.state.history.slice(0, this.state.stepNumber + 1);
+      const history = this.state.history.slice(0, this.state.currentStepNumber + 1);
       const current = history[history.length - 1];
       const squares = current.squares.slice();
       if (calculateWinner(squares) || squares[i]) {
@@ -66,31 +79,32 @@ function Square(props) {
       this.setState({
         history: history.concat([{
           squares: squares,
-        }]),
+          currentLocation: getLocation(i),
           stepNumber: history.length,
-          xIsNext: !this.state.xIsNext,
+        }]),
+        xIsNext: !this.state.xIsNext,
+        currentStepNumber: history.length,
       });
     }
 
     jumpTo(step) {
       this.setState({
-        stepNumber: step,
+        currentStepNumber: step,
         xIsNext: (step % 2) === 0,
       });
     }
 
     render() {
       const history = this.state.history;
-      const current = history[this.state.stepNumber];
+      const current = history[this.state.currentStepNumber];
       const winner = calculateWinner(current.squares);
 
       const moves = history.map((step, move) => {
-        const desc = move ?
-          'Go to move #' + move + ': (' + ', ' + ')':
-          'Go to game start';
+        const currentLocation = step.currentLocation ? `(${step.currentLocation})` : '';
+        const desc = step.stepNumber ? `Go to move #${step.stepNumber}` : 'Go to game start';
         return (
           <li key={move}>
-            <button onClick={() => this.jumpTo(move)}>{desc}</button>
+            <button onClick={() => this.jumpTo(move)}>{`${desc} ${currentLocation}`}</button>
           </li>
         );
       });
