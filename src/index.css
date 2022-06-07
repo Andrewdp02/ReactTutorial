@@ -36,6 +36,10 @@ body {
     background-color: yellow;
   }
 
+  .bold {
+    font-weight: bold;
+  }
+
   .square:focus {
     outline: none;
   }
